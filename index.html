@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>青苗琴行 - 相片打印機 排版系統</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📷</text></svg>">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00c853">
+
+    <style>
+        /* 保留原本的 CSS 樣式 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #fff8e1;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 20px 15px; margin: 0; color: #444;
+            overscroll-behavior-y: auto; 
+            padding-bottom: 220px;
+            user-select: none;
+        }
+        h2 { margin: 10px 0 20px 0; font-size: 1.4rem; color: #2e7d32; text-align: center; font-weight: 700; letter-spacing: 1px; }
+        .mode-switch { display: flex; gap: 0; background: white; border-radius: 50px; padding: 5px; margin-bottom: 15px; width: 100%; max-width: 600px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative; }
+        .sub-switch { margin-top: -5px; margin-bottom: 25px; background: rgba(255, 255, 255, 0.6); }
+        .mode-btn { flex: 1; padding: 12px 0; text-align: center; cursor: pointer; border-radius: 50px; font-weight: 600; color: #888; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); font-size: 14px; position: relative; z-index: 1; }
+        .mode-btn.active { color: white; background: linear-gradient(135deg, #00e676 0%, #00c853 100%); box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4); font-weight: bold; }
+        .controls { background: white; padding: 25px 20px; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); width: 100%; max-width: 600px; margin-bottom: 25px; }
+        .input-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; transition: background 0.3s; }
+        .input-group:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
+        .hidden { display: none !important; }
+        .input-group.active-group { background-color: #f1f8e9; padding: 15px; margin: -10px -10px 20px -10px; border-radius: 16px; border-bottom: none; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        label { font-weight: 700; color: #558b2f; margin: 0; font-size: 0.95rem; }
+        .btn-frame { background: #fff; border: 1px solid #e0e0e0; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; color: #666; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-frame.active { background: #fff3cd; border-color: #ffb300; color: #bf360c; font-weight: bold; }
+        input[type="file"] { width: 100%; padding: 12px; border: 2px dashed #b9f6ca; border-radius: 12px; background: #fafafa; outline: none; color: #555; font-size: 14px; }
+        .canvas-container { position: relative; width: 100%; max-width: 600px; margin-bottom: 20px; display: flex; justify-content: center; background: white; padding: 12px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        canvas { width: 100% !important; height: auto !important; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; touch-action: pan-y; }
+        .static-footer { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; padding: 10px 0 50px 0; }
+        .zoom-panel { display: none; align-items: center; justify-content: center; gap: 15px; background: white; border: 1px solid #f0f0f0; padding: 12px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .zoom-panel.show { display: flex; }
+        input[type=range] { flex: 1; -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #00e676; cursor: pointer; border: 2px solid #fff; }
+        .footer-buttons { display: flex; gap: 15px; width: 100%; }
+        .btn-footer { flex: 1; padding: 15px; border: none; border-radius: 16px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; transition: 0.2s; }
+        .btn-share { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+        .btn-save { background: linear-gradient(135deg, #42a5f5, #1565c0); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 25px; border-radius: 24px; max-width: 90%; max-height: 85%; width: 100%; overflow: auto; text-align: center; }
+        .modal-content img { width: 100%; height: auto; border-radius: 12px; }
+        .btn-close { margin-top: 20px; background: #eceff1; color: #546e7a; border: none; padding: 12px 30px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 0; }
+        .frame-item { border: 2px solid #eee; border-radius: 12px; padding: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
+        .frame-item img { width: 100%; height: auto; object-fit: contain; }
+    </style>
+</head>
+<body>
+
+    <h2>青苗琴行 - 相片打印機 排版系統</h2>
+
+    <div class="mode-switch">
+        <div class="mode-btn active" id="btn-mode-full" onclick="selectMode('4R_FULL')">4R (全頁)</div>
+        <div class="mode-btn" id="btn-mode-split" onclick="selectMode('4R_SPLIT')">4R (二合一)</div>
+    </div>
+
+    <div id="orientation-area" class="mode-switch sub-switch">
+        <div class="mode-btn active" id="btn-ori-v" onclick="selectOrientation('V')">直向 ↕</div>
+        <div class="mode-btn" id="btn-ori-h" onclick="selectOrientation('H')">橫向 ↔</div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group" id="group1">
+            <div class="label-row">
+                <label id="label1">📷 照片:</label>
+                <button class="btn-frame" id="btn-frame-1" onclick="openFrameSelector('img1')">🖼️ 選擇相框</button>
+            </div>
+            <input type="file" id="upload1" accept="image/*">
+        </div>
+        
+        <div class="input-group hidden" id="group2">
+            <div class="label-row">
+                <label id="label2">📷 照片 2:</label>
+                <button class="btn-frame" id="btn-frame-2" onclick="openFrameSelector('img2')">🖼️ 選擇相框</button>
+            </div>
+            <input type="file" id="upload2" accept="image/*">
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="photoCanvas"></canvas>
+    </div>
+
+    <div class="static-footer">
+        <div id="zoom-container" class="zoom-panel">
+            <span>🔍 縮放</span>
+            <input type="range" id="zoom-slider" min="1" max="3" step="0.05" value="1">
+        </div>
+
+        <div class="footer-buttons">
+            <button class="btn-footer btn-share" onclick="doShare()"><span>📤</span> 系統分享</button>
+            <button class="btn-footer btn-save" onclick="doLegacySave()"><span>💾</span> 儲存圖片</button>
+        </div>
+    </div>
+
+    <div id="downloadModal" class="modal-overlay"><div class="modal-content"><p>👇 請長按下方圖片儲存</p><img id="finalImage" src=""><button class="btn-close" onclick="closeModal('downloadModal')">關閉</button></div></div>
+    <div id="frameModal" class="modal-overlay"><div class="modal-content"><h3 style="color:#2e7d32;">選擇相框</h3><div id="frame-list" class="frame-grid"></div><button class="btn-close" onclick="closeModal('frameModal')">取消</button></div></div>
+
+    <script>
+        const DPI = 400; 
+        const MM_TO_INCH = 0.0393701;
+        const PAPER_4R_W_MM = 102; 
+        const PAPER_4R_H_MM = 152;
+
+        const PAPER_W = Math.round(PAPER_4R_W_MM * MM_TO_INCH * DPI);
+        const PAPER_H = Math.round(PAPER_4R_H_MM * MM_TO_INCH * DPI);
+
+        // 可根據需求補充 4R 專用相框
+        const FRAME_LIBRARY = {
+            "4R_FULL_V": [],
+            "4R_FULL_H": [],
+            "4R_SPLIT_V": [],
+            "4R_SPLIT_H": []
+        };
+
+        let currentMode = '4R_FULL'; // 4R_FULL, 4R_SPLIT
+        let currentOri = 'V'; 
+        
+        const canvas = document.getElementById('photoCanvas');
+        const ctx = canvas.getContext('2d');
+        const state = {
+            img1: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1, frameUrl: null },
+            img2: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1, frameUrl: null },
+            dragging: null, lastX: 0, lastY: 0, selectedKey: null
+        };
+
+        function selectMode(mode) { currentMode = mode; resetState(); updateUI(); }
+        function selectOrientation(ori) { currentOri = ori; resetState(); updateUI(); }
+
+        function resetState() {
+            state.selectedKey = null;
+            highlightGroup(null);
+            // 模式切換時不一定要清空照片，但可以重置縮放
+            if(state.img1.loaded) initImageState('img1');
+            if(state.img2.loaded) initImageState('img2');
+        }
+
+        function updateUI() {
+            document.getElementById('btn-mode-full').className = currentMode === '4R_FULL' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-mode-split').className = currentMode === '4R_SPLIT' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-ori-v').className = currentOri === 'V' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-ori-h').className = currentOri === 'H' ? 'mode-btn active' : 'mode-btn';
+
+            const g2 = document.getElementById('group2');
+            if (currentMode === '4R_SPLIT') {
+                g2.classList.remove('hidden');
+                document.getElementById('label1').innerText = currentOri === 'V' ? "📷 上方照片:" : "📷 左側照片:";
+                document.getElementById('label2').innerText = currentOri === 'V' ? "📷 下方照片:" : "📷 右側照片:";
+            } else {
+                g2.classList.add('hidden');
+                document.getElementById('label1').innerText = "📷 4R 全頁照片:";
+            }
+
+            canvas.width = (currentOri === 'V') ? PAPER_W : PAPER_H;
+            canvas.height = (currentOri === 'V') ? PAPER_H : PAPER_W;
+            
+            draw();
+        }
+
+        function getLayout() {
+            const cW = canvas.width;
+            const cH = canvas.height;
+            if (currentMode === '4R_SPLIT') {
+                if (currentOri === 'V') {
+                    // 直向紙張，上下平分
+                    const slotH = cH / 2;
+                    return { slots: [
+                        { key: 'img1', x: 0, y: 0, w: cW, h: slotH },
+                        { key: 'img2', x: 0, y: slotH, w: cW, h: slotH }
+                    ]};
+                } else {
+                    // 橫向紙張，左右平分
+                    const slotW = cW / 2;
+                    return { slots: [
+                        { key: 'img1', x: 0, y: 0, w: slotW, h: cH },
+                        { key: 'img2', x: slotW, y: 0, w: slotW, h: cH }
+                    ]};
+                }
+            } else {
+                return { slots: [{ key: 'img1', x: 0, y: 0, w: cW, h: cH }] };
+            }
+        }
+
+        function initImageState(key) {
+            const s = state[key];
+            const layout = getLayout();
+            const slot = layout.slots.find(sl => sl.key === key);
+            if (!slot || !s.loaded) return;
+
+            const imgRatio = s.obj.width / s.obj.height;
+            const slotRatio = slot.w / slot.h;
+            s.baseScale = (imgRatio > slotRatio) ? (slot.h / s.obj.height) : (slot.w / s.obj.width);
+            s.zoom = 1;
+            s.x = (slot.w - s.obj.width * s.baseScale) / 2;
+            s.y = (slot.h - s.obj.height * s.baseScale) / 2;
+            draw();
+        }
+
+        function draw(isExporting = false) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const layout = getLayout();
+            
+            layout.slots.forEach(slot => {
+                const s = state[slot.key];
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(slot.x, slot.y, slot.w, slot.h);
+                ctx.clip();
+
+                if (s.loaded) {
+                    const dW = s.obj.width * s.baseScale * s.zoom;
+                    const dH = s.obj.height * s.baseScale * s.zoom;
+                    ctx.drawImage(s.obj, slot.x + s.x, slot.y + s.y, dW, dH);
+                    if (s.frameUrl) {
+                        const fImg = new Image(); fImg.src = s.frameUrl;
+                        if(fImg.complete) ctx.drawImage(fImg, slot.x, slot.y, slot.w, slot.h);
+                    }
+                } else if (!isExporting) {
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+                    ctx.fillStyle = '#999'; ctx.font = 'bold 60px Arial'; ctx.textAlign = 'center';
+                    ctx.fillText('➕ 點擊上傳', slot.x + slot.w/2, slot.y + slot.h/2);
+                }
+                ctx.restore();
+
+                if (!isExporting) {
+                    ctx.strokeStyle = (state.selectedKey === slot.key) ? '#00c853' : '#eee';
+                    ctx.lineWidth = (state.selectedKey === slot.key) ? 10 : 4;
+                    ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
+                }
+            });
+        }
+
+        // --- 交互邏輯 (與原代碼基本一致，僅精簡) ---
+        canvas.onclick = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            const layout = getLayout();
+            const hit = layout.slots.find(s => x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h);
+            if(hit) {
+                state.selectedKey = hit.key;
+                if(!state[hit.key].loaded) document.getElementById(hit.key === 'img1' ? 'upload1' : 'upload2').click();
+                highlightGroup(hit.key);
+                draw();
+            }
+        };
+
+        function highlightGroup(key) {
+            document.querySelectorAll('.input-group').forEach(el => el.classList.remove('active-group'));
+            const zoomPanel = document.getElementById('zoom-container');
+            if(key && state[key].loaded) {
+                document.getElementById(key === 'img1' ? 'group1' : 'group2').classList.add('active-group');
+                zoomPanel.classList.add('show');
+                const slider = document.getElementById('zoom-slider');
+                slider.value = state[key].zoom;
+                slider.oninput = (e) => { state[key].zoom = parseFloat(e.target.value); draw(); };
+            } else { zoomPanel.classList.remove('show'); }
+        }
+
+        // 簡易拖動實現
+        canvas.onmousedown = (e) => { if(state.selectedKey) { state.dragging = state.selectedKey; state.lastX = e.clientX; state.lastY = e.clientY; } };
+        window.onmousemove = (e) => {
+            if(state.dragging) {
+                const s = state[state.dragging];
+                const scale = canvas.width / canvas.getBoundingClientRect().width;
+                s.x += (e.clientX - state.lastX) * scale;
+                s.y += (e.clientY - state.lastY) * scale;
+                state.lastX = e.clientX; state.lastY = e.clientY;
+                draw();
+            }
+        };
+        window.onmouseup = () => state.dragging = null;
+
+        // 檔案處理
+        function handleFile(e, key) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    state[key].obj.src = ev.target.result;
+                    state[key].obj.onload = () => { state[key].loaded = true; initImageState(key); selectImage(key); };
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        function selectImage(key) { state.selectedKey = key; highlightGroup(key); draw(); }
+        document.getElementById('upload1').onchange = (e) => handleFile(e, 'img1');
+        document.getElementById('upload2').onchange = (e) => handleFile(e, 'img2');
+
+        // 儲存與分享
+        function doLegacySave() {
+            state.selectedKey = null; highlightGroup(null); draw(true);
+            setTimeout(() => {
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    document.getElementById('finalImage').src = url;
+                    document.getElementById('downloadModal').style.display = 'flex';
+                    draw(false);
+                }, 'image/jpeg', 0.95);
+            }, 100);
+        }
+
+        async function doShare() {
+            state.selectedKey = null; highlightGroup(null); draw(true);
+            canvas.toBlob(async blob => {
+                const file = new File([blob], "photo.jpg", {type:"image/jpeg"});
+                if(navigator.canShare && navigator.canShare({files:[file]})) {
+                    await navigator.share({files:[file], title:'青苗相片打印'});
+                } else { alert("瀏覽器不支援分享，請使用儲存按鈕"); }
+                draw(false);
+            }, 'image/jpeg', 0.9);
+        }
+
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        
+        // 初始化
+        updateUI();
+    </script>
+</body>
+</html>
