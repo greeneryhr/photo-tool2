@@ -149,8 +149,8 @@
             const g2 = document.getElementById('group2');
             if (currentMode === '4R_SPLIT') {
                 g2.classList.remove('hidden');
-                document.getElementById('label1').innerText = currentOri === 'V' ? "📷 上方照片 (橫向較佳):" : "📷 左側照片 (直向較佳):";
-                document.getElementById('label2').innerText = currentOri === 'V' ? "📷 下方照片 (橫向較佳):" : "📷 右側照片 (直向較佳):";
+                document.getElementById('label1').innerText = currentOri === 'V' ? "📷 上方照片 (橫向):" : "📷 左側照片 (直向):";
+                document.getElementById('label2').innerText = currentOri === 'V' ? "📷 下方照片 (橫向):" : "📷 右側照片 (直向):";
             } else {
                 g2.classList.add('hidden');
                 document.getElementById('label1').innerText = "📷 4R 全頁照片:";
