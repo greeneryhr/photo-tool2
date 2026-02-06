@@ -11,7 +11,7 @@
     <meta name="theme-color" content="#00c853">
 
     <style>
-        /* 保留原本的 CSS 樣式 */
+        /* 保持原有樣式 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,19 +31,14 @@
         .input-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; transition: background 0.3s; }
         .input-group:last-child { border: none; padding-bottom: 0; margin-bottom: 0; }
         .hidden { display: none !important; }
-        .input-group.active-group { background-color: #f1f8e9; padding: 15px; margin: -10px -10px 20px -10px; border-radius: 16px; border-bottom: none; }
         .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         label { font-weight: 700; color: #558b2f; margin: 0; font-size: 0.95rem; }
-        .btn-frame { background: #fff; border: 1px solid #e0e0e0; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; color: #666; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-        .btn-frame.active { background: #fff3cd; border-color: #ffb300; color: #bf360c; font-weight: bold; }
         input[type="file"] { width: 100%; padding: 12px; border: 2px dashed #b9f6ca; border-radius: 12px; background: #fafafa; outline: none; color: #555; font-size: 14px; }
         .canvas-container { position: relative; width: 100%; max-width: 600px; margin-bottom: 20px; display: flex; justify-content: center; background: white; padding: 12px; border-radius: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
         canvas { width: 100% !important; height: auto !important; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); cursor: pointer; touch-action: pan-y; }
         .static-footer { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px; padding: 10px 0 50px 0; }
-        .zoom-panel { display: none; align-items: center; justify-content: center; gap: 15px; background: white; border: 1px solid #f0f0f0; padding: 12px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .zoom-panel.show { display: flex; }
-        input[type=range] { flex: 1; -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 3px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #00e676; cursor: pointer; border: 2px solid #fff; }
+        .zoom-panel { visibility: hidden; opacity: 0; display: flex; align-items: center; justify-content: center; gap: 15px; background: white; border: 1px solid #f0f0f0; padding: 12px 20px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .zoom-panel.show { visibility: visible; opacity: 1; }
         .footer-buttons { display: flex; gap: 15px; width: 100%; }
         .btn-footer { flex: 1; padding: 15px; border: none; border-radius: 16px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; color: white; transition: 0.2s; }
         .btn-share { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
@@ -52,39 +47,30 @@
         .modal-content { background: white; padding: 25px; border-radius: 24px; max-width: 90%; max-height: 85%; width: 100%; overflow: auto; text-align: center; }
         .modal-content img { width: 100%; height: auto; border-radius: 12px; }
         .btn-close { margin-top: 20px; background: #eceff1; color: #546e7a; border: none; padding: 12px 30px; border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: bold; }
-        .frame-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 0; }
-        .frame-item { border: 2px solid #eee; border-radius: 12px; padding: 5px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
-        .frame-item img { width: 100%; height: auto; object-fit: contain; }
     </style>
 </head>
 <body>
 
-    <h2>青苗琴行 - 相片打印機 排版系統</h2>
+    <h2>青苗琴行 - 相片排版系統</h2>
 
     <div class="mode-switch">
-        <div class="mode-btn active" id="btn-mode-full" onclick="selectMode('4R_FULL')">4R (全頁)</div>
-        <div class="mode-btn" id="btn-mode-split" onclick="selectMode('4R_SPLIT')">4R (二合一)</div>
+        <div class="mode-btn" id="btn-mode-full" onclick="selectMode('4R_FULL')">4R (全頁)</div>
+        <div class="mode-btn active" id="btn-mode-split" onclick="selectMode('4R_SPLIT')">4R (二合一)</div>
     </div>
 
     <div id="orientation-area" class="mode-switch sub-switch">
-        <div class="mode-btn active" id="btn-ori-v" onclick="selectOrientation('V')">直向 ↕</div>
+        <div class="mode-btn active" id="btn-ori-v" onclick="selectOrientation('V')">直向 ↕ (建議)</div>
         <div class="mode-btn" id="btn-ori-h" onclick="selectOrientation('H')">橫向 ↔</div>
     </div>
 
     <div class="controls">
         <div class="input-group" id="group1">
-            <div class="label-row">
-                <label id="label1">📷 照片:</label>
-                <button class="btn-frame" id="btn-frame-1" onclick="openFrameSelector('img1')">🖼️ 選擇相框</button>
-            </div>
+            <div class="label-row"><label id="label1">📷 照片:</label></div>
             <input type="file" id="upload1" accept="image/*">
         </div>
         
-        <div class="input-group hidden" id="group2">
-            <div class="label-row">
-                <label id="label2">📷 照片 2:</label>
-                <button class="btn-frame" id="btn-frame-2" onclick="openFrameSelector('img2')">🖼️ 選擇相框</button>
-            </div>
+        <div class="input-group" id="group2">
+            <div class="label-row"><label id="label2">📷 照片 2:</label></div>
             <input type="file" id="upload2" accept="image/*">
         </div>
     </div>
@@ -106,7 +92,6 @@
     </div>
 
     <div id="downloadModal" class="modal-overlay"><div class="modal-content"><p>👇 請長按下方圖片儲存</p><img id="finalImage" src=""><button class="btn-close" onclick="closeModal('downloadModal')">關閉</button></div></div>
-    <div id="frameModal" class="modal-overlay"><div class="modal-content"><h3 style="color:#2e7d32;">選擇相框</h3><div id="frame-list" class="frame-grid"></div><button class="btn-close" onclick="closeModal('frameModal')">取消</button></div></div>
 
     <script>
         const DPI = 400; 
@@ -117,34 +102,42 @@
         const PAPER_W = Math.round(PAPER_4R_W_MM * MM_TO_INCH * DPI);
         const PAPER_H = Math.round(PAPER_4R_H_MM * MM_TO_INCH * DPI);
 
-        // 可根據需求補充 4R 專用相框
-        const FRAME_LIBRARY = {
-            "4R_FULL_V": [],
-            "4R_FULL_H": [],
-            "4R_SPLIT_V": [],
-            "4R_SPLIT_H": []
-        };
-
-        let currentMode = '4R_FULL'; // 4R_FULL, 4R_SPLIT
+        // 預設為 2合1 + 直向
+        let currentMode = '4R_SPLIT'; 
         let currentOri = 'V'; 
         
         const canvas = document.getElementById('photoCanvas');
         const ctx = canvas.getContext('2d');
         const state = {
-            img1: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1, frameUrl: null },
-            img2: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1, frameUrl: null },
+            img1: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1 },
+            img2: { obj: new Image(), loaded: false, x: 0, y: 0, baseScale: 1, zoom: 1 },
             dragging: null, lastX: 0, lastY: 0, selectedKey: null
         };
 
-        function selectMode(mode) { currentMode = mode; resetState(); updateUI(); }
-        function selectOrientation(ori) { currentOri = ori; resetState(); updateUI(); }
+        function selectMode(mode) { 
+            if(currentMode === mode) return;
+            currentMode = mode; 
+            clearPhotos();
+            updateUI(); 
+        }
 
-        function resetState() {
+        function selectOrientation(ori) { 
+            if(currentOri === ori) return;
+            currentOri = ori; 
+            clearPhotos();
+            updateUI(); 
+        }
+
+        // 當切換模式或直橫時，清空照片確保排版正確
+        function clearPhotos() {
+            state.img1.loaded = false;
+            state.img2.loaded = false;
+            state.img1.obj.src = "";
+            state.img2.obj.src = "";
             state.selectedKey = null;
+            document.getElementById('upload1').value = "";
+            document.getElementById('upload2').value = "";
             highlightGroup(null);
-            // 模式切換時不一定要清空照片，但可以重置縮放
-            if(state.img1.loaded) initImageState('img1');
-            if(state.img2.loaded) initImageState('img2');
         }
 
         function updateUI() {
@@ -156,8 +149,8 @@
             const g2 = document.getElementById('group2');
             if (currentMode === '4R_SPLIT') {
                 g2.classList.remove('hidden');
-                document.getElementById('label1').innerText = currentOri === 'V' ? "📷 上方照片:" : "📷 左側照片:";
-                document.getElementById('label2').innerText = currentOri === 'V' ? "📷 下方照片:" : "📷 右側照片:";
+                document.getElementById('label1').innerText = currentOri === 'V' ? "📷 上方照片 (橫向較佳):" : "📷 左側照片 (直向較佳):";
+                document.getElementById('label2').innerText = currentOri === 'V' ? "📷 下方照片 (橫向較佳):" : "📷 右側照片 (直向較佳):";
             } else {
                 g2.classList.add('hidden');
                 document.getElementById('label1').innerText = "📷 4R 全頁照片:";
@@ -174,14 +167,14 @@
             const cH = canvas.height;
             if (currentMode === '4R_SPLIT') {
                 if (currentOri === 'V') {
-                    // 直向紙張，上下平分
+                    // 紙張直向時，上下切開，每格會變成橫向的矩形
                     const slotH = cH / 2;
                     return { slots: [
                         { key: 'img1', x: 0, y: 0, w: cW, h: slotH },
                         { key: 'img2', x: 0, y: slotH, w: cW, h: slotH }
                     ]};
                 } else {
-                    // 橫向紙張，左右平分
+                    // 紙張橫向時，左右切開，每格會變成直向的矩形（最適合放手機照片）
                     const slotW = cW / 2;
                     return { slots: [
                         { key: 'img1', x: 0, y: 0, w: slotW, h: cH },
@@ -201,7 +194,14 @@
 
             const imgRatio = s.obj.width / s.obj.height;
             const slotRatio = slot.w / slot.h;
-            s.baseScale = (imgRatio > slotRatio) ? (slot.h / s.obj.height) : (slot.w / s.obj.width);
+            
+            // 使用 Cover 邏輯：填滿格子
+            if (imgRatio > slotRatio) {
+                s.baseScale = slot.h / s.obj.height;
+            } else {
+                s.baseScale = slot.w / s.obj.width;
+            }
+            
             s.zoom = 1;
             s.x = (slot.w - s.obj.width * s.baseScale) / 2;
             s.y = (slot.h - s.obj.height * s.baseScale) / 2;
@@ -224,27 +224,25 @@
                     const dW = s.obj.width * s.baseScale * s.zoom;
                     const dH = s.obj.height * s.baseScale * s.zoom;
                     ctx.drawImage(s.obj, slot.x + s.x, slot.y + s.y, dW, dH);
-                    if (s.frameUrl) {
-                        const fImg = new Image(); fImg.src = s.frameUrl;
-                        if(fImg.complete) ctx.drawImage(fImg, slot.x, slot.y, slot.w, slot.h);
-                    }
                 } else if (!isExporting) {
-                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillStyle = '#f9f9f9';
                     ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
-                    ctx.fillStyle = '#999'; ctx.font = 'bold 60px Arial'; ctx.textAlign = 'center';
-                    ctx.fillText('➕ 點擊上傳', slot.x + slot.w/2, slot.y + slot.h/2);
+                    ctx.fillStyle = '#bbb'; 
+                    ctx.font = 'bold 50px Arial'; 
+                    ctx.textAlign = 'center';
+                    ctx.fillText('點擊上傳照片', slot.x + slot.w/2, slot.y + slot.h/2);
                 }
                 ctx.restore();
 
                 if (!isExporting) {
                     ctx.strokeStyle = (state.selectedKey === slot.key) ? '#00c853' : '#eee';
-                    ctx.lineWidth = (state.selectedKey === slot.key) ? 10 : 4;
+                    ctx.lineWidth = (state.selectedKey === slot.key) ? 12 : 4;
                     ctx.strokeRect(slot.x, slot.y, slot.w, slot.h);
                 }
             });
         }
 
-        // --- 交互邏輯 (與原代碼基本一致，僅精簡) ---
+        // --- 交互邏輯 ---
         canvas.onclick = (e) => {
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (canvas.width / rect.width);
@@ -253,17 +251,18 @@
             const hit = layout.slots.find(s => x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h);
             if(hit) {
                 state.selectedKey = hit.key;
-                if(!state[hit.key].loaded) document.getElementById(hit.key === 'img1' ? 'upload1' : 'upload2').click();
+                if(!state[hit.key].loaded) {
+                    document.getElementById(hit.key === 'img1' ? 'upload1' : 'upload2').click();
+                }
                 highlightGroup(hit.key);
                 draw();
             }
         };
 
         function highlightGroup(key) {
-            document.querySelectorAll('.input-group').forEach(el => el.classList.remove('active-group'));
+            document.querySelectorAll('.input-group').forEach(el => el.style.background = 'none');
             const zoomPanel = document.getElementById('zoom-container');
             if(key && state[key].loaded) {
-                document.getElementById(key === 'img1' ? 'group1' : 'group2').classList.add('active-group');
                 zoomPanel.classList.add('show');
                 const slider = document.getElementById('zoom-slider');
                 slider.value = state[key].zoom;
@@ -271,63 +270,77 @@
             } else { zoomPanel.classList.remove('show'); }
         }
 
-        // 簡易拖動實現
-        canvas.onmousedown = (e) => { if(state.selectedKey) { state.dragging = state.selectedKey; state.lastX = e.clientX; state.lastY = e.clientY; } };
-        window.onmousemove = (e) => {
+        // 觸控/滑鼠拖動
+        const handleStart = (e) => { 
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            if(state.selectedKey) { state.dragging = state.selectedKey; state.lastX = clientX; state.lastY = clientY; } 
+        };
+        const handleMove = (e) => {
             if(state.dragging) {
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 const s = state[state.dragging];
                 const scale = canvas.width / canvas.getBoundingClientRect().width;
-                s.x += (e.clientX - state.lastX) * scale;
-                s.y += (e.clientY - state.lastY) * scale;
-                state.lastX = e.clientX; state.lastY = e.clientY;
+                s.x += (clientX - state.lastX) * scale;
+                s.y += (clientY - state.lastY) * scale;
+                state.lastX = clientX; state.lastY = clientY;
                 draw();
+                if(e.cancelable) e.preventDefault();
             }
         };
-        window.onmouseup = () => state.dragging = null;
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('touchstart', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, {passive:false});
+        window.addEventListener('mouseup', () => state.dragging = null);
+        window.addEventListener('touchend', () => state.dragging = null);
 
-        // 檔案處理
         function handleFile(e, key) {
             const file = e.target.files[0];
             if(file) {
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    state[key].obj.src = ev.target.result;
-                    state[key].obj.onload = () => { state[key].loaded = true; initImageState(key); selectImage(key); };
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        state[key].obj = tempImg;
+                        state[key].loaded = true;
+                        initImageState(key);
+                        state.selectedKey = key;
+                        highlightGroup(key);
+                    };
+                    tempImg.src = ev.target.result;
                 };
                 reader.readAsDataURL(file);
             }
         }
-        function selectImage(key) { state.selectedKey = key; highlightGroup(key); draw(); }
         document.getElementById('upload1').onchange = (e) => handleFile(e, 'img1');
         document.getElementById('upload2').onchange = (e) => handleFile(e, 'img2');
 
-        // 儲存與分享
         function doLegacySave() {
-            state.selectedKey = null; highlightGroup(null); draw(true);
+            state.selectedKey = null; draw(true);
             setTimeout(() => {
-                canvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    document.getElementById('finalImage').src = url;
-                    document.getElementById('downloadModal').style.display = 'flex';
-                    draw(false);
-                }, 'image/jpeg', 0.95);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                document.getElementById('finalImage').src = dataUrl;
+                document.getElementById('downloadModal').style.display = 'flex';
+                draw(false);
             }, 100);
         }
 
         async function doShare() {
-            state.selectedKey = null; highlightGroup(null); draw(true);
+            state.selectedKey = null; draw(true);
             canvas.toBlob(async blob => {
                 const file = new File([blob], "photo.jpg", {type:"image/jpeg"});
                 if(navigator.canShare && navigator.canShare({files:[file]})) {
                     await navigator.share({files:[file], title:'青苗相片打印'});
-                } else { alert("瀏覽器不支援分享，請使用儲存按鈕"); }
+                } else { alert("瀏覽器不支援直接分享，請使用儲存按鈕。"); }
                 draw(false);
             }, 'image/jpeg', 0.9);
         }
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         
-        // 初始化
+        // 初始化界面
         updateUI();
     </script>
 </body>
